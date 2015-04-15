@@ -71,40 +71,11 @@
 
             if (!this.stream.CanSeek)
             {
-                var task =
-                    MoveToWritableStream();
-
-                task.Wait();
-
-                if (task.IsFaulted)
-                {
-                   throw new InvalidOperationException("Unable to copy stream", task.Exception);
-                }
+                this.stream = CreateDefaultMemoryStream(expectedLength);
+                stream.CopyTo(this.stream);
             }
 
             this.stream.Position = 0;
-        }
-
-        private Task<object> MoveToWritableStream()
-        {
-            var tcs = new TaskCompletionSource<object>();
-
-            var sourceStream = this.stream;
-            this.stream = new MemoryStream(StreamExtensions.BufferSize);
-
-            sourceStream.CopyTo(this, (source, destination, ex) =>
-            {
-                if (ex != null)
-                {
-                    tcs.SetException(ex);
-                }
-                else
-                {
-                    tcs.SetResult(null);
-                }
-            });
-
-            return tcs.Task;
         }
 
         /// <summary>
